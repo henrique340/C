@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <locale.h>
 
-void trocar(int disco, int destino){
-  
+void trocar(int disco, int destino)
+{
 }
 
 int main()
@@ -25,20 +25,26 @@ int main()
 
   // input do usuário
   printf("P1 contém ");
+  printf("[");
   for (int i = 0; i < 6; i++)
   {
-    printf("p%d ", situacaoP1[i]);
+    printf("%d ", situacaoP1[i]);
   }
+  printf("]");
   printf("\nP2 contém ");
+  printf("[");
   for (int i = 0; i < 6; i++)
   {
-    printf("p%d ", situacaoP2[i]);
+    printf("%d ", situacaoP2[i]);
   }
+  printf("]");
   printf("\nP3 contém ");
+  printf("[");
   for (int i = 0; i < 6; i++)
   {
-    printf("p%d ", situacaoP3[i]);
+    printf("%d ", situacaoP3[i]);
   }
+  printf("]");
   printf("\nDigite a sua jogada: ");
   scanf("%s %s", &disco, &pilar);
 }
