@@ -1,5 +1,3 @@
-// NOME: Henrique Yuji Isogai Yoneoka RA: 10418153
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
