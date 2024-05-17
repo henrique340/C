@@ -1,32 +1,10 @@
-// Henrique Yuji Isogai Yoneoka
-// RA: 10418153
-
-
 // Bibliotecas usadas
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
-#include <stdbool.h>
 
-// Não usei struct porque achei uma função em C que faz a função muito mais simples
-
-/*
-typedef struct
-{
-  int ano;
-  int mes;
-  int dia;
-  int hora;
-  int minuto;
-  int duracao;
-  int indice;
-  char nome[];
-} compromisso
-*/
-
-// Função para gerar uma entrada aleatória 
+// Função para gerar uma entrada aleatória
 void gerarEntrada(int num, char nome[]){
   for (int i = 0; i < num; i++){
     // Criando o arquivo entrada.csv
@@ -37,12 +15,11 @@ void gerarEntrada(int num, char nome[]){
     }
     // Gerando numeros aleatorios
     int ano = (rand() % 27) + 2010;     // Retorna um numero entre 2010 e 2026
-    int mes = (rand() % 13) + 1;        // Retorna um numero entre 1 e 12
-    int dia = (rand() % 32) + 1;        // Retorna um numero entre 1 e 31
-    int hora = (rand() % 25) + 0;       // Retorna um numero entre 0 e 24
-    int minuto = (rand() % 61) + 0;     // Retorna um numero entre 0 e 60
+    int mes = (rand() % 12) + 1;        // Retorna um numero entre 1 e 12
+    int dia = (rand() % 31) + 1;        // Retorna um numero entre 1 e 31
+    int hora = (rand() % 24) + 0;       // Retorna um numero entre 0 e 24
+    int minuto = (rand() % 60) + 0;     // Retorna um numero entre 0 e 60
     int duracao = (rand() % 13) + 1;    // Retorna um numero entre 1 e 13
-
     char *nomes[] = {"Aula", "TCC", "Webnar", "Natacao", "Reuniao"};
     int indice = rand() % 5;
     char *nome = nomes[indice];
@@ -52,10 +29,11 @@ void gerarEntrada(int num, char nome[]){
   }
 }
 
-
 // Função para usar o algoritimo Insertion Sort
-void insertionSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
-  int comparacoes = 0;
+void insertionSort(char nome[]){
+  // Declaração do tipo long long int
+  unsigned long long int comparacoes = 0;
+  // Declaracao das variaveis de tempo
   double tempo_execucao;
   clock_t start, end;
 
@@ -73,13 +51,29 @@ void insertionSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
   }
   rewind(arquivo); // Volta para o início do arquivo
 
-  // Lendo os dados e armazenando em arrays
-  int anos[linhas], meses[linhas], dias[linhas], horas[linhas], minutos[linhas], duracoes[linhas];
-  char nomes[linhas][20]; // Tamanho máximo do nome
+  // Armazenando os dados em arrays com alocacao de memoria
+  int *anos = malloc(linhas * sizeof(int));
+  if (anos == NULL){
+    fprintf(stderr, "Erro ao alocar memoria");
+    fclose(arquivo);
+    return;
+  }
+  int *meses = malloc(linhas * sizeof(int));
+  int *dias = malloc(linhas * sizeof(int));
+  int *horas = malloc(linhas * sizeof(int));
+  int *minutos = malloc(linhas * sizeof(int));
+  int *duracoes = malloc(linhas * sizeof(int));
+  char **nomes = malloc(linhas * sizeof(char *));
+  for (int i = 0; i < linhas; i++){
+    nomes[i] = malloc(20 * sizeof(char));
+  }
+
+  // Leitura dos dados
   for (int i = 0; i < linhas; i++){
     fscanf(arquivo, "%d;%d;%d;%d;%d;%d;%s", &anos[i], &meses[i], &dias[i], &horas[i], &minutos[i], &duracoes[i], nomes[i]);
   }
 
+  // Inicia o clock
   start = clock();
 
   // Algoritmo de Insertion Sort para ordenar os dados por ano
@@ -114,28 +108,14 @@ void insertionSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
     strcpy(nomes[j + 1], nomeChave);
   }
 
+  // Fim do clock
   end = clock();
   tempo_execucao = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-  // Calcula a media do tempo de execução
-  double media = 0.0;
-  for (int i = 0; i < linhas; i++) {
-    media += tempo_execucao;
-  }
-  media /= linhas;
-
-  // Calcula o DV do tempo de execução
-  double soma_quadrados_diff = 0.0;
-  for (int i = 0; i < linhas; i++) {
-    double diff = tempo_execucao - media;
-    soma_quadrados_diff += diff * diff;
-  }
-  double media_quadrados_diff = soma_quadrados_diff / linhas;
-  double desvio_padrao = sqrt(media_quadrados_diff);
-
   fclose(arquivo);
 
-  // Escrevendo os dados ordenados de volta no arquivo
+  // Escrevendo os dados ordenados de volta no arquivo//
+
   arquivo = fopen("saida.csv", "w");
   if (arquivo == NULL){
     fprintf(stderr, "Erro ao abrir arquivo de saída!");
@@ -149,27 +129,36 @@ void insertionSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
   fclose(arquivo);
 
   // Removendo o arquivo original
-  if (remove("entrada2.csv") != 0){
+  if (remove("entrada.csv") != 0){
     printf("Erro ao remover arquivo original\n");
   }
 
   // Renomear o arquivo temp para entrada.csv
-  if (rename("saida.csv", "entrada2.csv") != 0){
+  if (rename("saida.csv", "entrada.csv") != 0){
     printf("Erro ao renomear arquivo temp");
     return;
   }
-  if (mostrar_info){
-    printf("Algoritimo: Quick Sort\nTamanho Entrada: %d\nTempo de execucao: %f segundos\nComparacoes (passos): %d", linhas, tempo_execucao, comparacoes);
+  
+  // Liberando a memória alocada
+  free(anos);
+  free(meses);
+  free(dias);
+  free(horas);
+  free(minutos);
+  free(duracoes);
+  for (int i = 0; i < linhas; i++){
+    free(nomes[i]);
   }
-  if (mostrar_media_DV){
-    printf("media: %.2f|DV:%.2f", media, desvio_padrao);
-  }
+  free(nomes);
+
+  printf("Algoritimo: Insertion Sort\nTamanho Entrada: %d\nTempo de execucao: %.3f segundos\nComparacoes (passos): %llu", linhas, tempo_execucao, comparacoes);
+  
 }
 
 
 // Função para usar o algorítimo Quick Sort
-void quickSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
-  int comparacoes = 0;
+void quickSort(char nome[]){
+  unsigned long long int comparacoes = 0;
   double tempo_execucao;
   clock_t start, end;
 
@@ -188,8 +177,21 @@ void quickSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
   rewind(arquivo); // Volta para o início do arquivo
 
   // Lendo os dados e armazenando em arrays
-  int anos[linhas], meses[linhas], dias[linhas], horas[linhas], minutos[linhas], duracoes[linhas];
-  char nomes[linhas][20]; // Tamanho máximo do nome
+  int *anos = malloc(linhas * sizeof(int));
+  if (anos == NULL) {
+    fprintf(stderr, "Erro ao alocar memória!");
+    fclose(arquivo);
+    return;
+  }
+  int *meses = malloc(linhas * sizeof(int));
+  int *dias = malloc(linhas * sizeof(int));
+  int *horas = malloc(linhas * sizeof(int));
+  int *minutos = malloc(linhas * sizeof(int));
+  int *duracoes = malloc(linhas * sizeof(int));
+  char **nomes = malloc(linhas * sizeof(char *));
+  for (int i = 0; i < linhas; i++) {
+    nomes[i] = malloc(20 * sizeof(char));
+  }
   for (int i = 0; i < linhas; i++){
     fscanf(arquivo, "%d;%d;%d;%d;%d;%d;%s", &anos[i], &meses[i], &dias[i], &horas[i], &minutos[i], &duracoes[i], nomes[i]);
   }
@@ -280,21 +282,6 @@ void quickSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
   end = clock();
   tempo_execucao = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-  // Calcula o desvio padrão dos tempos de execução
-  double media = 0.0;
-  for (int i = 0; i < linhas; i++) {
-    media += tempo_execucao;
-  }
-  media /= linhas;
-
-  double soma_quadrados_diff = 0.0;
-  for (int i = 0; i < linhas; i++) {
-    double diff = tempo_execucao - media;
-    soma_quadrados_diff += diff * diff;
-  }
-  double media_quadrados_diff = soma_quadrados_diff / linhas;
-  double desvio_padrao = sqrt(media_quadrados_diff);
-
   fclose(arquivo);
 
   // Escrevendo os dados ordenados de volta no arquivo
@@ -311,110 +298,27 @@ void quickSort(char nome[], bool mostrar_info, bool mostrar_media_DV){
   fclose(arquivo);
 
   // Removendo o arquivo original
-  if (remove("entrada2.csv") != 0){
+  if (remove("entrada.csv") != 0){
     printf("Erro ao remover arquivo original\n");
   }
 
   // Renomear o arquivo temp para entrada.csv
-  if (rename("saida.csv", "entrada2.csv") != 0){
+  if (rename("saida.csv", "entrada.csv") != 0){
     printf("Erro ao renomear arquivo temp");
     return;
   }
-
-  if (mostrar_info){
-    printf("Algoritimo: Quick Sort\nTamanho Entrada: %d\nTempo de execucao: %.2f segundos\nComparacoes (passos): %d", linhas, tempo_execucao, comparacoes);
+  free(anos);
+  free(meses);
+  free(dias);
+  free(horas);
+  free(minutos);
+  free(duracoes);
+  for (int i = 0; i < linhas; i++){
+    free(nomes[i]);
   }
-  if (mostrar_media_DV){
-    printf("media: %.2f|DV: %.2f       |",media, desvio_padrao);
-  }
-}
+  free(nomes);
 
-
-void copiarArquivo(char origem[], char destino[]){
-  FILE *arquivoOrigem = fopen(origem, "r");
-  if (arquivoOrigem == NULL){
-    fprintf(stderr, "Erro ao abrir arquivo!");
-    fclose(arquivoOrigem);
-    return;
-  }
-
-  FILE *arquivoDestino = fopen(destino, "w");
-  if (arquivoDestino == NULL){
-    fprintf(stderr, "Erro ao abrir arquivo!");
-    return;
-  }
-  char linha[1000];
-  while (fgets(linha, sizeof(linha), arquivoOrigem) != NULL){
-    fputs(linha, arquivoDestino);
-  }
-  fclose(arquivoOrigem);
-  fclose(arquivoDestino);
-}
-
-
-void analiseAlgoritimos(){
-  // 1.000
-  gerarEntrada(1000, "tabela1.csv");
-  copiarArquivo("tabela1.csv", "tabela2.csv");
-  printf("Tebela 1 - Tempo (em segundos)\n");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("|  Alunos  |  Insertion sort  |  Insertion sort  |    Quick sort    |    Quick sort    |\n");
-  printf("|          |  medido (Media)  |    medido (DV)   |   medido(Media)  |    medido (DV)   |\n");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("|  1.000   |");
-  insertionSort("tabela1.csv",false, true);
-  quickSort("tabela2.csv",false, true);
-  printf("\n----------------------------------------------------------------------------------------\n");
-  
-
-  // 10.000
-  gerarEntrada(10000, "tabela1.csv");
-  copiarArquivo("tabela1.csv","tabela2.csv");
-  printf("|  10.000  |");
-  insertionSort("tabela1.csv", false, true);
-  quickSort("tabela2.csv", false, true);
-  printf("\n----------------------------------------------------------------------------------------\n");
-  remove("tabela1.csv");
-  remove("tabela2.csv");
-
-  // 100.000
-  gerarEntrada(100000, "tabela1.csv");
-  copiarArquivo("tabela1.csv", "tabela2.csv");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("| 100.000  |");
-  insertionSort("tabela1.csv", false, true);
-  quickSort("tabela2.csv", false, true);
-  printf("\n----------------------------------------------------------------------------------------\n");
-  remove("tabela1.csv");
-  remove("tabela2.csv");
-
-  // 200.000
-  gerarEntrada(200000, "tabela1.csv");
-  copiarArquivo("tabela1.csv", "tabela2.csv");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("| 200.000  |");
-  insertionSort("tabela1.csv", false, true);
-  quickSort("tabela2.csv", false, true);
-  printf("----------------------------------------------------------------------------------------\n");
-
-
-  /*      COMPARACOES      */
-  printf("\nTebela 2 - Comparacoes\n");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("|   Alunos   |   Insertion   |   Insertion   |    Quick    |    Quick    |    Quick    |\n");
-  printf("|            |     sort      |     sort      |    sort     |    sort     |    sort     |\n");
-  printf("|            |     medido    |     medido    |    teorico  |    medido   |    medido   |\n");
-  printf("|            |    (media)    |     (DV)      |   (O(n^2))  |    (media)  | (O(n log n))|\n");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("|    1000    |               |               |             |             |             |\n");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("|    1000    |               |               |             |             |             |\n");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("|    1000    |               |               |             |             |             |\n");
-  printf("----------------------------------------------------------------------------------------\n");
-  printf("|    1000    |               |               |             |             |             |\n");
-  printf("----------------------------------------------------------------------------------------\n");
-
+  printf("Algoritimo: Quick Sort\nTamanho Entrada: %d\nTempo de execucao: %.3f segundos\nComparacoes (passos): %llu", linhas, tempo_execucao, comparacoes);
 }
 
 int main(){
@@ -426,8 +330,7 @@ int main(){
     printf("[1] - Gerar entrada aleatoria\n");
     printf("[2] - Ordenar por ano (Insertion Sort)\n");
     printf("[3] - Ordenar por ano (Quick Sort)\n");
-    printf("[4] - Gerar tabela\n");
-    printf("[5] - Sair");
+    printf("[4] - Sair");
     printf("\nDigite a sua opcao: ");
     scanf("%d", &opc);
 
@@ -439,30 +342,20 @@ int main(){
     switch (opc)
     {
     case 1:
-      gerarEntrada(1000, "entrada2.csv");
+      gerarEntrada(6000, "entrada.csv");
       break;
     case 2:
-      insertionSort("entrada2.csv", false, true);
+      insertionSort("entrada.csv");
       break;
     case 3:
-      quickSort("entrada2.csv", false, true);
+      quickSort("entrada.csv");
       break;
     case 4:
-      analiseAlgoritimos();
-      break;
-    case 5:
       printf("Saindo do programa ...");
       break;
     default:
       printf("Digite uma opcao valida!");
       break;
     }
-  } while (opc != 5);
+  } while (opc != 4);
 }
-
-
-/*DUVIDA: 
-  O que o enunciado quis dizer com faça 10 vezes e faça a média?
-  É pra eu fazer por mim 10 vezes ou o código?
-  Eu posso fazer em excel ou precisa ser feito usando alguma biblioteca da própria linguagem?
-*/
